@@ -7,7 +7,7 @@ As per *help:
   <b>al</b>: View all LukeBot saved avatars!<br></br>
   <b>avatar</b>: Change the bot avatar. Can use saved avatars, URL, or img file<br></br>
   <b>hello</b>: Hey there!<br></br>
-  <b>kiss</b>: Kiss someone!<br></br>
+  <b>wave</b>: Wave to someone!<br></br>
   <b>punch</b>: Punch someone!<br></br>
   <b>rtd</b>: Roll the dice.<br></br>
   <b>time</b>: Get the time in U.S. time zones.<br></br>
@@ -15,7 +15,7 @@ As per *help:
   <b>createaccount</b>: Create an account for LukeBot website.<br></br>
   <b>gif</b>: Receive a random gif based on the prompt<br></br>
   <b>record_session</b>: Gathers and compiles clips into one while running<br></br>
-  <b>vl</b>: View all LukeBot saved videos!<br></br>
+  <b>videos</b>: View all LukeBot saved videos!<br></br>
   <b>wr</b>: Retrieve information about LoL players or champions.<br></br>
 <h3>TextGames</h3><br></br>
   <b>picdle</b>: Guess cat or dog. Easy, Med, or Hard<br></br>

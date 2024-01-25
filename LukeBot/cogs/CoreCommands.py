@@ -27,16 +27,16 @@ class CoreCommands(commands.Cog):
             Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
         await ctx.send(f"Hey there, {ctx.author.mention}!")
         
-    @commands.hybrid_command(name="kiss", description="Kiss someone!")
-    async def kiss(self, ctx, user: discord.Member): # Kiss another member!
-        """Kiss someone!"""
+    @commands.hybrid_command(name="wave", description="Wave to someone!")
+    async def wave(self, ctx, user: discord.Member): # Kiss another member!
+        """Wave to someone!"""
         if ctx.guild:
             Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), str(user.id))
         else:
             Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), str(user.id))
             
-        await ctx.send(f"{ctx.author.mention} kisses {user.mention}!")
-        await ctx.send("https://media1.tenor.com/m/bD7CkL3ACK4AAAAd/good-morning.gif")
+        await ctx.send(f"{ctx.author.mention} waves to {user.mention}!")
+        await ctx.send("https://media1.tenor.com/m/Qy5sUxL5phgAAAAC/forest-gump-wave.gif")
         
     @commands.hybrid_command(name = "punch", description="Punch someone!")
     async def punch(self, ctx, user: discord.Member): # Punch another member!
@@ -164,7 +164,7 @@ class CoreCommands(commands.Cog):
             await ctx.send("Avatar updated successfully.")
         
     @commands.hybrid_command(name="al", description="List of all stored bot avatars")
-    async def avatarList(self, ctx):
+    async def avatar_list(self, ctx):
         """View all LukeBot saved avatars!"""
         if ctx.guild:
             Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))

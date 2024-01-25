@@ -19,7 +19,6 @@ from pkg_resources import parse_version
 if parse_version(Image.__version__)>=parse_version('10.0.0'): # for pillow resizing to work
     Image.ANTIALIAS=Image.LANCZOS
 
-
 class Media(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -137,7 +136,7 @@ class Media(commands.Cog):
 
     @commands.hybrid_command(name="record_session", description="Gathers and compile clips while running")
     async def record_session(self, ctx):
-        """Gathers and compiles clips into one while running"""
+        """Gathers and compiles clips into one while running. 'END RECORDING' to stop."""
         ### ADD TO DATABASE ###
         if ctx.guild:
             Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))
@@ -285,7 +284,7 @@ class Media(commands.Cog):
             print(video_info)
             
         finally:
-            # Make sure to reset the recording session status even if an exceFailed to download geckodriver archive: https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-win32.tar.gzption occurs
+            # reset the recording session status
             self.is_recording_session[text_channel_id] = False
 
     @commands.hybrid_command(name="videos", description="Website containing saved videos!")
