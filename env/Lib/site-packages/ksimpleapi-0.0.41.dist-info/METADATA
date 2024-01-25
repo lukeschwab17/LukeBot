@@ -1,0 +1,31 @@
+Metadata-Version: 2.1
+Name: ksimpleapi
+Version: 0.0.41
+Summary: ksimpleapi
+Home-page: https://github.com/kkristof200/py_simpleapi
+Author: Kristof
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.5
+Description-Content-Type: text/markdown
+Requires-Dist: cloudscraper (>=1.2.58)
+Requires-Dist: kcu (>=0.0.72)
+Requires-Dist: requests (>=2.26.0)
+Requires-Dist: tldextract (>=3.1.2)
+
+# ksimpleapi
+![python_version](https://img.shields.io/static/v1?label=Python&message=3.5%20|%203.6%20|%203.7&color=blue) [![PyPI downloads/month](https://img.shields.io/pypi/dm/ksimpleapi?logo=pypi&logoColor=white)](https://pypi.python.org/pypi/ksimpleapi)
+
+## Description
+
+
+## Install
+~~~~bash
+pip install ksimpleapi
+# or
+pip3 install ksimpleapi
+~~~~
+
