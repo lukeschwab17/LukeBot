@@ -3,13 +3,13 @@ from datetime import datetime
 import os
 from typing import Self
 from cryptography.fernet import Fernet
+from all_keys import DATABASE_KEY
 
 class Database:
     def __init__(self):
         self.db_file_location = r"C:\Users\schwa\Desktop\discBot\LukeBot\LukeBot\databases\database.db"
         
-        with open(r"C:\Users\schwa\Desktop\API_KEYS\filekey.key", "rb") as key_file:
-            self.key = Fernet(key_file.read())
+        self.key = Fernet(DATABASE_KEY)
             
         with open(self.db_file_location, "rb") as db_file:
             original = db_file.read()
@@ -89,11 +89,40 @@ class Database:
             for data in serverData:
                 db.curs.execute("INSERT OR IGNORE INTO server_users VALUES (?, ?, ?, ?, ?)", data)
     
-    # THE FOLLOWING ARE ALL FUNCTIONS FOR AVATAR COMMAND
-    # stores all avatar urls and images
-
+    # get all rows from given table
     @classmethod
-    def check_existing_avatar_url(cls, avatar_url: str):
+    def get_table(cls, table_name: str) -> tuple:
+        with cls() as db:
+            db.curs.execute(f"SELECT rowid, * FROM {table_name}")
+            return db.curs.fetchall()
+            
+
+    # get all table rowids from given table
+    @classmethod
+    def get_ids(cls, table_name: str) -> tuple:
+        with cls() as db:
+            db.curs.execute(f"SELECT rowid FROM {table_name}")
+            all_ids = [row[0] for row in db.curs.fetchall()]
+            return all_ids
+        
+    # get largest rowid from given table
+    @classmethod
+    def get_largest_rowid(cls, table_name: str) -> int: # yes its redundant i couldnt figure out how to call getIDS() inside this function
+        with cls() as db:
+            db.curs.execute(f"SELECT rowid FROM {table_name}")
+            all_ids = [row[0] for row in db.curs.fetchall()]
+            return max(all_ids)
+        
+    # get last item from given table
+    @classmethod
+    def get_last_item(cls, table_name: str) -> tuple:
+        with cls() as db:
+            db.curs.execute(f"SELECT rowid, * FROM {table_name} ORDER BY rowid DESC LIMIT 1")
+            return db.curs.fetchone()
+            
+    # THE FOLLOWING ARE METHODS FOR AVATAR COMMANDS #
+    @classmethod
+    def check_existing_avatar_url(cls, avatar_url: str) -> bool:
         """Returns True if avatar URL already exists in database's avatar table."""
         with cls() as db:
             db.curs.execute("Select image_url FROM avatars WHERE image_url = ?", (avatar_url,))
@@ -104,8 +133,9 @@ class Database:
             
             return False
         
+    # store new avatar data in database
     @classmethod
-    def store_avatar_data(cls, avatarURL: str, avatarName: str, submitterID: str):
+    def store_avatar_data(cls, avatar_url: str, avatar_name: str, submitter_id: str):
         with cls() as db:
             db.curs.execute("""CREATE TABLE IF NOT EXISTS avatars (
                                 image_url text,    
@@ -115,43 +145,23 @@ class Database:
                             )""")
             
             db.curs.execute("INSERT INTO avatars (image_url, avatar_name, submitter_id) VALUES (?, ?, ?)",
-                        (avatarURL, avatarName, submitterID))
+                        (avatar_url, avatar_name, submitter_id))
 
 
             file_path = f"assets/avatars/{db.curs.lastrowid}.png"# Generate file path using the ID and file extension
 
             db.curs.execute("UPDATE avatars SET file_path = ? WHERE rowid = ?", (file_path, db.curs.lastrowid)) # Update the file path for the last inserted row
 
+    # get file path of avatar given the URL
     @classmethod
-    def get_table(cls, table_name: str):
+    def get_avatar_file_path(cls, avatar_url: str) -> str:
         with cls() as db:
-            db.curs.execute(f"SELECT rowid, * FROM {table_name}")
-            return db.curs.fetchall()
+            db.curs.execute("SELECT file_path FROM avatars WHERE image_url = ?", (avatar_url,))
+            selected_url = db.curs.fetchone()
             
-    @classmethod
-    def get_avatar_file_path(cls, avatarURL: str):
-        with cls() as db:
-            db.curs.execute("SELECT file_path FROM avatars WHERE image_url = ?", (avatarURL,))
-            selectedURL = db.curs.fetchone()
-            
-            return selectedURL
-        
-    @classmethod
-    def get_ids(cls, table_name: str):
-        with cls() as db:
-            db.curs.execute(f"SELECT rowid FROM {table_name}")
-            all_ids = [row[0] for row in db.curs.fetchall()]
-            return all_ids
-        
-    @classmethod
-    def get_largest_primary_key(cls, table_name: str): # yes its redundant i couldnt figure out how to call getIDS() inside this function
-        with cls() as db:
-            db.curs.execute(f"SELECT rowid FROM {table_name}")
-            all_ids = [row[0] for row in db.curs.fetchall()]
-            return max(all_ids)
-        
-    # FOLLOWING METHODS ARE FOR record_session COMMAND IN Media.py #
+            return selected_url
 
+    # FOLLOWING METHODS ARE FOR record_session COMMAND IN Media.py #
     @classmethod
     def submit_video(cls, user_ids: set, numclips: int, clip_name: str, guild_id: str):
         user_id_string = ""
@@ -173,27 +183,23 @@ class Database:
             file_path = rf"C:\Users\schwa\Desktop\video_website\video_website\video_website\static\videos\{db.curs.lastrowid}.mp4"# Generate file path using the ID and file extension
             db.curs.execute("UPDATE recording_session_compilations SET file_path = ? WHERE rowid = ?", (file_path, db.curs.lastrowid)) # Update the file path for the last inserted row
             
-    @classmethod
-    def get_last_item(cls, table_name: str):
-        with cls() as db:
-            db.curs.execute(f"SELECT rowid, * FROM {table_name} ORDER BY rowid DESC LIMIT 1")
-            return db.curs.fetchone()
-            
      
+    # THE FOLLOWING METHODS ARE FOR WEBSITE ACCOUNTS
     @classmethod
-    def get_usernames(cls):
+    def get_usernames(cls) -> tuple:
         with cls() as db:
             db.curs.execute(f"SELECT username FROM user_accounts")
             return db.curs.fetchall()
 
+    
     @classmethod
-    def get_discord_ids(cls, table_name: str):
+    def get_discord_ids(cls, table_name: str) -> tuple:
         with cls() as db:
             db.curs.execute(f"SELECT discord_id FROM {table_name}")
             return db.curs.fetchall()
 
     @classmethod
-    def create_account(cls, acc_info: list): # list -> username, password, discord id
+    def create_account(cls, acc_info: list) -> str: # list -> username, password, discord id
         with cls() as db:
             db.curs.execute("""CREATE TABLE IF NOT EXISTS user_accounts (
                             username text,

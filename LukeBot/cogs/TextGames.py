@@ -67,7 +67,7 @@ class TextGames(commands.Cog):
         
         init_time = time.time() # Time race started
         user_data = dict() # will hold users and wpm once race is finished
-        one_warning = False # user gets ONE 10 second warning rather than multiple, as it updates multiple times per second
+        one_warning = False # ensures users get ONE 10 second warning rather than multiple spam messages, as bot.wait_for updates multiple times per second
         
         while(time.time() < init_time + 45 and len(racing_users) != 0):
             stopwatch = time.time()
@@ -119,7 +119,7 @@ class TextGames(commands.Cog):
         else:
             Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
         
-        def createGrid(guesses=None, word=''): # creates and fills grid based on list of user guesses
+        def create_grid(guesses: list[str]=None, word: str='') -> discord.File: # creates and fills grid based on list of user guesses
             if guesses is None:
                 guesses = []
                 
@@ -129,32 +129,39 @@ class TextGames(commands.Cog):
             for i in range(len(guesses)): # six rows
                 if guesses[i]: # if not empty
                     temp_word = word # keeps track of correctly guessed/yellow letters so that there cannot be more yellows than there are instanes of that char
-                    for j, char in enumerate(guesses[i]): #green letters
+                    
+                    #green letters
+                    for j, char in enumerate(guesses[i]): 
                         if char == word[j]: # correct char = green
                             temp_word = temp_word.replace(char, '', 1)
                             grid.paste(Image.open('assets/wordle/GreenSquare.png'), (j*100, i*100))
                             text_plane.text((j*100 + 25, i*100 + 25), str(char).upper(), (0,0,0), font=font)
-                    for j, char in enumerate(guesses[i]): #yellow letters
+                    
+                    #yellow letters
+                    for j, char in enumerate(guesses[i]): 
                         if char in temp_word and char != word[j]: # incorrect but in word = yellow
                             temp_word = temp_word.replace(char, '', 1)
                             grid.paste(Image.open('assets/wordle/YellowSquare.png'), (j*100, i*100))
                             text_plane.text((j*100 + 25, i*100 + 25), str(char).upper(), (0,0,0), font=font)
-                        elif char in word and char != word[j] and char not in temp_word: #if green/yellow exhausted of that char, should be gray
+                            
+                        #if green/yellow exhausted of that char, should be gray
+                        elif char in word and char != word[j] and char not in temp_word: 
                             grid.paste(Image.open('assets/wordle/ColorAbsent.png'), (j*100, i*100))
                             text_plane.text((j*100 + 25, i*100 + 25), str(char).upper(), (0,0,0), font=font)
+                    
+                    # final gray letters
                     for j, char in enumerate(guesses[i]):
                         if char not in word:    
                             grid.paste(Image.open('assets/wordle/ColorAbsent.png'), (j*100, i*100))
                             text_plane.text((j*100 + 25, i*100 + 25), str(char).upper(), (0,0,0), font=font)
-                else: #if guess yet entered, keep gray background
-                    pass
+                
             grid.save('assets/wordle/grid.png')
             grid.close()
             return discord.File("assets/wordle/grid.png")
 
         # Set up initial embed below
         wordle_embed = discord.Embed(title="WORDLE", description="Type any five-letter word to guess!")
-        grid_file = createGrid() # create empty grid to start
+        grid_file = create_grid() # create empty grid to start
         wordle_embed.set_image(url="attachment://grid.png")
         
         update = await ctx.send(embed=wordle_embed, file=grid_file) #store embed message to update embed later
@@ -207,7 +214,7 @@ class TextGames(commands.Cog):
                 guess_list.append(rand_words[0]) # if time limit exceeded, add from randWord
                 rand_words.remove(rand_words[0])
                 
-            grid_file = createGrid(guess_list, ans_word)
+            grid_file = create_grid(guess_list, ans_word)
             await update.edit(embed=wordle_embed, attachments=[grid_file]) # update embed (grid image has changed)
             if guess == ans_word: # WIN CASE
                 await ctx.send(f"Congratulations! {ctx.author.mention} won wordle! The word was: {ans_word}. Guesses taken: {len(guess_list)}")
@@ -221,15 +228,19 @@ class TextGames(commands.Cog):
                 
 
     @commands.hybrid_command(name="picdle", description="Guess the animal!")
-    async def picdle(self, ctx, difficulty):
+    async def picdle(self, ctx, difficulty: str = None):
         """Guess cat or dog. Easy, Med, or Hard"""
         if ctx.guild:
             Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), difficulty)
         else:
             Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), difficulty)
             
+        if not difficulty:
+            await ctx.send("Please try again and enter a difficulty. see *help for options.")
+            return
+        
         # Image from URL into bytes to send in discord embed (tested here using a different method, not downloading images)
-        def url_to_imgfile(response, embed, blur = None):
+        def url_to_imgfile(response: httpx.Response, embed: discord.Embed, blur: int = None) -> discord.File:
                 image_data = BytesIO(response.content)
                 image = Image.open(image_data)
                 if blur != None:
@@ -237,17 +248,18 @@ class TextGames(commands.Cog):
                 image_data = BytesIO()  # Create a new BytesIO object for saving the image
                 image.save(image_data, format='PNG')
                 image_data.seek(0)
-                fileImage = discord.File(image_data, filename="image.png")
+                file_image = discord.File(image_data, filename="image.png")
                 embed.set_image(url="attachment://image.png")
-                return fileImage
+                return file_image
         
         animal_options = {0: "dog", 1: "cat"}
-        difficulties = {"easy": 10, "med": 20, "hard": 40}
+        difficulties_blur = {"easy": 10, "med": 20, "hard": 40}
         update = None
         first_send = True
         time_flag = False
+        
         try:
-            selectedDifficulty = difficulties[difficulty.lower()]
+            selected_difficulty = difficulties_blur[difficulty.lower()]
         except:
             await ctx.send(f"Difficulty {difficulty} not valid.")
             return
@@ -264,7 +276,7 @@ class TextGames(commands.Cog):
             if response.status_code == 200:
                 animal_embed = discord.Embed(title="Cat or Dog?", description="To guess, type 'cat' or 'dog'. 'end' will end the game.")
     
-                file_image = url_to_imgfile(response, animal_embed, selectedDifficulty)
+                file_image = url_to_imgfile(response, animal_embed, selected_difficulty)
                 
                 if first_send == True:
                     update = await ctx.send(embed=animal_embed, file=file_image)
@@ -306,15 +318,19 @@ class TextGames(commands.Cog):
                 return
 
     @commands.hybrid_command(name="ttt", description="challenge another user to tic-tac-toe")
-    async def ttt(self, ctx, user: discord.Member):
+    async def ttt(self, ctx, user: discord.Member = None):
         """ Challenge another user to Tic-Tac-Toe"""
+        if not user:
+            await ctx.send("Correct usage: *ttt @mention")
+            return
+        
         if ctx.guild:
             Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), str(user.id))
         else:
             Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), str(user.id))
         
         # function creates and fills grid based on list of user placement
-        def add_turn(first_start, place=None, letter=None): 
+        def add_turn(first_start: bool, place: int=None, letter: chr=None) -> discord.File: 
             if first_start == True:
                 grid = Image.open('assets/tictactoe/grid.png') # create image background
             else:
@@ -347,11 +363,11 @@ class TextGames(commands.Cog):
         # discord user accept/deny challenge
         await ctx.send(f"{user.mention}: You have 10 seconds to accept or deny {ctx.author.mention}'s TIC-TAC-TOE challenge. 'accept' or 'deny'.")
         try:
-            userAns = await self.bot.wait_for("message", check = lambda mess: mess.author == user and (mess.content.lower() == 'accept' or mess.content.lower() == 'deny'), timeout=10.0)
+            user_ans = await self.bot.wait_for("message", check = lambda mess: mess.author == user and (mess.content.lower() == 'accept' or mess.content.lower() == 'deny'), timeout=10.0)
         except asyncio.TimeoutError:
             await ctx.send(f"Game cancelled. {user.mention} failed to respond.")
             return
-        if userAns == 'deny':
+        if str(user_ans.content) == 'deny':
             await ctx.send(f"{user.mention} denied TIC-TAC-TOE.")
             return
         await ctx.send(f"Game starting! {ctx.author.mention} has first move.")

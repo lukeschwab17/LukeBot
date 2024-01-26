@@ -3,7 +3,6 @@ import random
 from re import A
 import time
 import json
-from discord.flags import flag_value
 import httpx
 from bs4 import BeautifulSoup
 import discord
@@ -15,6 +14,7 @@ import shutil
 import os
 from PIL import Image
 from pkg_resources import parse_version
+from all_keys import TENOR_API_KEY
 
 if parse_version(Image.__version__)>=parse_version('10.0.0'): # for pillow resizing to work
     Image.ANTIALIAS=Image.LANCZOS
@@ -26,22 +26,18 @@ class Media(commands.Cog):
         self.temp_videos_index = 0
         
     @commands.hybrid_command(name="gif", description="Receive a random gif based on the prompt.")
-    async def gif(self, ctx, *, arg):
+    async def gif(self, ctx, search: str):
         """Receive a random gif based on the prompt"""
         if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), arg)
+            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), search)
         else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), arg)
+            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), search)
         
-        arg = arg.replace(' ', '-') # spaces become %20 in image search. ############### LATER SHOULD IMPLEMENT MORE SUCH AS '+' ##############
+        search = search.replace(' ', '-') # spaces become %20 in image search. ############### LATER SHOULD IMPLEMENT MORE SUCH AS '+' ##############
         gif_links = []
         
-        # grab API key
-        with open("C:/Users/schwa/Desktop/API_KEYS/TENOR.txt", 'r') as api_file:
-            api_key = api_file.read()
-        
         # grabbing gifs
-        response = httpx.get(f"https://tenor.googleapis.com/v2/search?q={arg}&key={api_key}&limit={50}") #load first 500 gifs (timeout saved slow loading?)
+        response = httpx.get(f"https://tenor.googleapis.com/v2/search?q={search}&key={TENOR_API_KEY}&limit={50}") #load first 500 gifs (timeout saved slow loading?)
         if response.status_code == 200:
             top100gifs = json.loads(response.content)
         else:
@@ -53,14 +49,18 @@ class Media(commands.Cog):
         await ctx.send(url)
  
     @commands.hybrid_command(name="wr", description="Retrieve information about LoL players or champions.")
-    async def wr(self, ctx, *, arg):
+    async def wr(self, ctx, search: str = None):
         """Retrieve information about LoL players or champions."""
+        if not search:
+            await ctx.send(r"Correct usage: \*wr 'player_username#id'  OR  \*wr 'champion_name'") # use raw string because discord uses * to format text
+            return
+
         if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), arg)
+            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), search)
         else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), arg)
+            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), search)
         
-        new_arg = arg.replace(' ', '') #spaces on u.gg website are removed
+        new_arg = search.replace(' ', '') #spaces on u.gg website are removed
 
         headers = { # spoofing browser to webscrape
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -101,7 +101,7 @@ class Media(commands.Cog):
             player_info = {"Summoner Rank:": player_rank, "Summoner Winrate:": player_wr_text, "Summoner Champions:": player_champs_text}
 
             # create embed for player
-            player_embed = discord.Embed(title=arg.split("#", 1)[0].upper())
+            player_embed = discord.Embed(title=search.split("#", 1)[0].upper())
             for i, key in enumerate(player_info):
                 if i == 2:
                     player_embed.add_field(name=key, value=player_info[key], inline=False)
@@ -125,7 +125,7 @@ class Media(commands.Cog):
                 return
         
             # create embed for champion
-            champ_embed = discord.Embed(title=arg.upper(), description="Champion Statistics")
+            champ_embed = discord.Embed(title=search.upper(), description="Champion Statistics")
             champInfo = {"Tier": stats_values[0].text, "Win Rate": stats_values[1].text, "Pick Rate": stats_values[2].text, "Ban Rate:": stats_values[3].text, "Matches": stats_values[4].text}
             for key in champInfo:
                 champ_embed.add_field(name=key, value=champInfo[key])
@@ -146,7 +146,7 @@ class Media(commands.Cog):
         
         text_channel_id = ctx.channel.id
 
-        def checkChannelAndContent(message: discord.Message):
+        def check_channel_and_content(message: discord.Message):
             # first, check if message is in the correct channel
             if message.channel != ctx.channel:
                 return False
@@ -155,7 +155,6 @@ class Media(commands.Cog):
                 return False
             
             # not all attachments may be videos, so we need to grab only the ones that are.
-            # https://stackoverflow.com/questions/70982261/is-there-a-way-to-check-if-the-attachment-send-is-either-a-image-or-video-in-dis
             video_attachments = []
             for attachment in message.attachments:
                 if attachment.content_type.startswith("video"):
@@ -188,7 +187,7 @@ class Media(commands.Cog):
             while True:
                 # get videos continuously, stop when 2 hours of no uploads or END RECORDING entered.
                 try:
-                    get_video = await self.bot.wait_for("message", check=lambda mess: checkChannelAndContent(mess) or str(mess.content) == "END RECORDING", timeout = 7200.0)
+                    get_video = await self.bot.wait_for("message", check=lambda mess: check_channel_and_content(mess) or str(mess.content) == "END RECORDING", timeout = 7200.0)
                     if str(get_video.content) == "END RECORDING":
                         await ctx.send(f"{get_video.author.mention} has ended the recording session.")
                         break
@@ -218,7 +217,6 @@ class Media(commands.Cog):
             
             # saving files
             for i, recording in enumerate(all_recordings): 
-                # https://stackoverflow.com/questions/65169339/download-csv-file-sent-by-user-discord-py
                 filename = i + 1
                 try:
                     await recording.save(fp=f"{temp_folder}/{filename}.mp4")
@@ -229,7 +227,7 @@ class Media(commands.Cog):
                 print("file saved")
                 
             # https://thepythoncode.com/article/concatenate-video-files-in-python
-            def concatenate(video_clip_paths, output_path, method="compose"):
+            def concatenate(video_clip_paths: str, output_path: str, method="compose"):
                 """Concatenates several video files into one video file
                 and save it to `output_path`. Note that extension (mp4, etc.) must be added to `output_path`
                 `method` can be either 'compose' or 'reduce':
@@ -263,7 +261,7 @@ class Media(commands.Cog):
             await ctx.send(f"Compiling videos. This will take a while....")
             # compile videos and create video
             try:
-                file_name = Database.get_largest_primary_key("recording_session_compilations") + 1
+                file_name = Database.get_largest_rowid("recording_session_compilations") + 1
                 # if doesn't throw exception
                 concatenate(all_recording_filepaths, rf"C:\Users\schwa\Desktop\video_website\video_website\video_website\static\videos\{file_name}.mp4", "reduce")
             except: # if does, it's the first of the table.
@@ -316,6 +314,7 @@ class Media(commands.Cog):
             return
         
         account_information = []
+        
         # user create username
         await ctx.send("Please enter desired username: (alpha numeric only)")
         while(True):
@@ -349,7 +348,7 @@ class Media(commands.Cog):
         Database.create_account(account_information)
         
         # success
-        # currently, using a batch script to run webside and bot concurrently. Website uses ngrok and pipes tunnel information to json file
+        # for now, using a batch script to run webside and bot concurrently. Website uses ngrok and pipes tunnel information to json file
         # Each time ngrok runs (free version) it will create a new url, which is why this process is necessary.
         with open(r"C:\Users\schwa\Desktop\video_website\video_website\video_website\ngrok_url.json", "r") as file:
             ngrokdata = json.load(file)

@@ -25,22 +25,32 @@ class CoreCommands(commands.Cog):
             Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))
         else:
             Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
+            
         await ctx.send(f"Hey there, {ctx.author.mention}!")
         
     @commands.hybrid_command(name="wave", description="Wave to someone!")
-    async def wave(self, ctx, user: discord.Member): # Kiss another member!
+    async def wave(self, ctx, user: discord.Member = None): # Kiss another member!
         """Wave to someone!"""
+        if not user:
+            await ctx.send("Correct usage: *wave @mention")
+            return
+        
         if ctx.guild:
             Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), str(user.id))
         else:
             Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), str(user.id))
             
+
         await ctx.send(f"{ctx.author.mention} waves to {user.mention}!")
         await ctx.send("https://media1.tenor.com/m/Qy5sUxL5phgAAAAC/forest-gump-wave.gif")
         
     @commands.hybrid_command(name = "punch", description="Punch someone!")
-    async def punch(self, ctx, user: discord.Member): # Punch another member!
+    async def punch(self, ctx, user: discord.Member = None): # Punch another member!
         """Punch someone!"""
+        if not user:
+            await ctx.send("Correct usage: *punch @mention")
+            return
+        
         if ctx.guild:
             Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), str(user.id))
         else:
@@ -81,7 +91,7 @@ class CoreCommands(commands.Cog):
             Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), img)
         
         
-        def is_valid_img(response):
+        def is_valid_img(response: httpx.Response) -> bool:
             """Reads in binary data, returns true or false determined by pillow's supported file types"""
             try:
                 test_image_type = Image.open(BytesIO(response.content))
@@ -90,7 +100,7 @@ class CoreCommands(commands.Cog):
             
             return True
         
-        def url_to_imgfile(response, num):
+        def url_to_imgfile(response: httpx.Response, num: int):
             """Grabs image data and writes it to file with unique name"""
             image_data = response.content
             file = open(f"assets/avatars/{num}.png", 'wb')
@@ -151,7 +161,7 @@ class CoreCommands(commands.Cog):
             # store new avatar information and create image file
             avatar_name = str(user_message.content)
             Database.store_avatar_data(set_avatar, avatar_name, str(user_message.author.id))
-            url_to_imgfile(response, Database.get_largest_primary_key("avatars"))
+            url_to_imgfile(response, Database.get_largest_rowid("avatars"))
         
         # find image file in database from associated URL or ID, then upload image as avatar
         # if user is using stored avatar, then avatar filepath is already valid.
