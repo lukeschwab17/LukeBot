@@ -1,6 +1,8 @@
 <h1>LukeBot</h1>
 <h2>Multi-Purpose Discord Bot</h2>
 
+Contains simple commands, embed/text games, and recording commands that are relevant to a seperate website project of mine.<br></br><br></br>
+
 As per *help:
 
 <h3>CoreCommands</h3><br></br>
