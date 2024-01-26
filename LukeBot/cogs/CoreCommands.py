@@ -133,10 +133,10 @@ class CoreCommands(commands.Cog):
         
         # check for valid img url
         else: 
-            response = httpx.get(img)
-            if response.status_code == 200:
+            try:
+                response = httpx.get(img)
                 set_avatar = img
-            else:
+            except:
                 await ctx.send("URL could not be reached. Please enter valid argument for image - existing image ID (*al), image URL, or image attatchment.")
                 return
 

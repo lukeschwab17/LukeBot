@@ -5,12 +5,9 @@ from cogs.CoreCommands import CoreCommands
 from cogs.Media import Media
 from cogs.TextGames import TextGames
 from databases.databases import Database
+from all_keys import BOT_TOKEN
 
 def run_discord_bot():
-    # TOKEN
-    with open("C:/Users/schwa/Desktop/TOKEN.txt", 'r') as token_file:
-        TOKEN = token_file.read()
-
     intents = discord.Intents.default()
     intents.message_content = True
     intents.members = True
@@ -35,4 +32,4 @@ def run_discord_bot():
         Database.store_servers_data(user_data)
         print("Database updated.")
         
-    bot.run(TOKEN)
+    bot.run(BOT_TOKEN)

@@ -7,7 +7,7 @@ from all_keys import DATABASE_KEY
 
 class Database:
     def __init__(self):
-        self.db_file_location = r"C:\Users\schwa\Desktop\discBot\LukeBot\LukeBot\databases\database.db"
+        self.db_file_location = 'databases/database.db'
         
         self.key = Fernet(DATABASE_KEY)
             
