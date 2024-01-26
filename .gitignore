@@ -1,8 +1,9 @@
 # my keys
 keys/
 
-# visual studio
+# my own
 .vs/
+*.pyproj
 
 # python below via: https://github.com/github/gitignore/blob/main/Python.gitignore
 
