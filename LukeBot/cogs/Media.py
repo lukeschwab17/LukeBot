@@ -175,7 +175,7 @@ class Media(commands.Cog):
         try:
             self.temp_videos_index += 1
             self.is_recording_session[text_channel_id] = True
-            await ctx.send("Recording session begun! Clips sent in this text channel will be recorded.")
+            await ctx.send("Recording session begun! Clips sent in this text channel will be recorded. 'END RECORDING' to stop recording.")
             all_recordings = []
             user_ids = set()
             all_recording_filepaths = []
@@ -188,11 +188,12 @@ class Media(commands.Cog):
                 # get videos continuously, stop when 2 hours of no uploads or END RECORDING entered.
                 try:
                     get_video = await self.bot.wait_for("message", check=lambda mess: check_channel_and_content(mess) or str(mess.content) == "END RECORDING", timeout = 7200.0)
+                    
                     if str(get_video.content) == "END RECORDING":
                         await ctx.send(f"{get_video.author.mention} has ended the recording session.")
                         break
                     
-                    await ctx.send("Adding videos...")
+                    await ctx.send("Adding videos... Reminder: 'END RECORDING' to end the recording session!")
                     
                     for attachment in get_video.attachments:
                         if attachment.size > 25000000: # 25 mb size cap
