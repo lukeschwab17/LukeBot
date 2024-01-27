@@ -28,10 +28,7 @@ class Media(commands.Cog):
     @commands.hybrid_command(name="gif", description="Receive a random gif based on the prompt.")
     async def gif(self, ctx, search: str):
         """Receive a random gif based on the prompt"""
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), search)
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), search)
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id), search)
         
         search = search.replace(' ', '-') # spaces become %20 in image search. ############### LATER SHOULD IMPLEMENT MORE SUCH AS '+' ##############
         gif_links = []
@@ -55,10 +52,7 @@ class Media(commands.Cog):
             await ctx.send(r"Correct usage: \*wr 'player_username#id'  OR  \*wr 'champion_name'") # use raw string because discord uses * to format text
             return
 
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), search)
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), search)
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id), search)
         
         new_arg = search.replace(' ', '') #spaces on u.gg website are removed
 
@@ -289,72 +283,12 @@ class Media(commands.Cog):
     @commands.hybrid_command(name="videos", description="Website containing saved videos!")
     async def video_website(self, ctx):
         """View all LukeBot saved videos!"""
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id))
         
         with open(r"C:\Users\schwa\Desktop\video_website\video_website\video_website\ngrok_url.json", "r") as file:
             ngrokdata = json.load(file)
             
         await ctx.send(f"Website containing saved compilations: {ngrokdata["tunnels"][0]["public_url"]}")
-        
-    @commands.hybrid_command(name="createaccount", description="Create an account for LukeBot website.")
-    async def create_account(self, ctx):
-        """Create an account for LukeBot website."""
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))
-            await ctx.send("Please use this command in DM.")
-            return
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
-        
-        # check if account exists
-        if ctx.author.id in Database.get_discord_ids("user_accounts"):
-            await ctx.send("You already have an account. You can type *logins to view your login information.")
-            return
-        
-        account_information = []
-        
-        # user create username
-        await ctx.send("Please enter desired username: (alpha numeric only)")
-        while(True):
-            username = await self.bot.wait_for("message", check=lambda mess: str(mess.content).isalnum())
-            if str(username.content) in Database.get_usernames():
-                await ctx.send("Username taken. Please Try again.")
-            else:
-                account_information.append(str(username.content))
-                break
-        
-        # user create password
-        passwords = set()
-        while(True):
-            await ctx.send("Please enter a password (min length: 5, max length: 30):")
-            password = await self.bot.wait_for("message", check=lambda mess: len(str(mess.content)) > 4 and len(str(mess.content)) < 31)
-            passwords.add(str(password.content))
-            await ctx.send("Please confirm password:")
-            
-            password = await self.bot.wait_for("message", check=lambda mess: len(str(mess.content)) > 4 and len(str(mess.content)) < 31)
-            passwords.add(str(password.content))
-            
-            if len(passwords) == 2:
-                await ctx.send("Passwords are not the same. Please retry.")
-            else:
-                account_information.append(str(password.content))
-                break
-            
-        account_information.append(str(ctx.author.id))
-        
-        # create account
-        Database.create_account(account_information)
-        
-        # success
-        # for now, using a batch script to run webside and bot concurrently. Website uses ngrok and pipes tunnel information to json file
-        # Each time ngrok runs (free version) it will create a new url, which is why this process is necessary.
-        with open(r"C:\Users\schwa\Desktop\video_website\video_website\video_website\ngrok_url.json", "r") as file:
-            ngrokdata = json.load(file)
-            
-        await ctx.send(f"SUCCESS! You can now login at: {ngrokdata["tunnels"][0]["public_url"]}")
         
 async def setup(bot):
     await bot.add_cog(Media(bot))

@@ -21,15 +21,12 @@ class CoreCommands(commands.Cog):
     @commands.hybrid_command(name="hello", description="Hey there!")
     async def hello(self, ctx):
         """Hey there!"""
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id))
             
         await ctx.send(f"Hey there, {ctx.author.mention}!")
         
     @commands.hybrid_command(name="wave", description="Wave to someone!")
-    async def wave(self, ctx, user: discord.Member = None): # Kiss another member!
+    async def wave(self, ctx, user: discord.Member = None):
         """Wave to someone!"""
         if not user:
             await ctx.send("Correct usage: *wave @mention")
@@ -51,10 +48,7 @@ class CoreCommands(commands.Cog):
             await ctx.send("Correct usage: *punch @mention")
             return
         
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), str(user.id))
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), str(user.id))
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id), str(user.id))
         
         await ctx.send(f"{ctx.author.mention} punches {user.mention}!")
         await ctx.send("https://media1.tenor.com/m/jwGSFHGRyFUAAAAC/boxing-tom-and-jerry.gif")
@@ -62,10 +56,7 @@ class CoreCommands(commands.Cog):
     @commands.hybrid_command(name="time", description="Get the time in U.S. time zones.")
     async def time(self, ctx):
         """Get the time in U.S. time zones."""
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id))
         
         await ctx.send(f"PST: {datetime.now(pytz.timezone("America/Los_Angeles")).strftime("%Y-%m-%d %I:%M:%S %p")}\n"
                        f"MST: {datetime.now(pytz.timezone("America/Denver")).strftime("%Y-%m-%d %I:%M:%S %p")}\n"
@@ -75,21 +66,14 @@ class CoreCommands(commands.Cog):
     @commands.hybrid_command(name="rtd", description="Roll the dice.")
     async def rtd(self, ctx):
         """Roll the dice."""    
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id))
         
         await ctx.send(file=discord.File(f'assets/dice/DIE_0{random.randint(1,6)}.png'))
 
     @commands.hybrid_command(name="avatar", description="Change the bot avatar")
     async def avatar(self, ctx, img: str = None):
         """Change the bot avatar. Can use saved avatars, URL, or img file"""
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), img)
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), img)
-        
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id), img)
         
         def is_valid_img(response: httpx.Response) -> bool:
             """Reads in binary data, returns true or false determined by pillow's supported file types"""
@@ -176,10 +160,7 @@ class CoreCommands(commands.Cog):
     @commands.hybrid_command(name="al", description="List of all stored bot avatars")
     async def avatar_list(self, ctx):
         """View all LukeBot saved avatars!"""
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id))
         
         avatar_embed = discord.Embed(title="Avatar List", description="To set LukeBot's avatar with an image from this list, use *al 'id number'")
         for avatar_data in Database.get_table("avatars"):

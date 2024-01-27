@@ -183,39 +183,4 @@ class Database:
             file_path = rf"C:\Users\schwa\Desktop\video_website\video_website\video_website\static\videos\{db.curs.lastrowid}.mp4"# Generate file path using the ID and file extension
             db.curs.execute("UPDATE recording_session_compilations SET file_path = ? WHERE rowid = ?", (file_path, db.curs.lastrowid)) # Update the file path for the last inserted row
             
-     
-    # THE FOLLOWING METHODS ARE FOR WEBSITE ACCOUNTS
-    @classmethod
-    def get_usernames(cls) -> tuple:
-        with cls() as db:
-            db.curs.execute(f"SELECT username FROM user_accounts")
-            return db.curs.fetchall()
-
-    
-    @classmethod
-    def get_discord_ids(cls, table_name: str) -> tuple:
-        with cls() as db:
-            db.curs.execute(f"SELECT discord_id FROM {table_name}")
-            return db.curs.fetchall()
-
-    @classmethod
-    def create_account(cls, acc_info: list) -> str: # list -> username, password, discord id
-        with cls() as db:
-            db.curs.execute("""CREATE TABLE IF NOT EXISTS user_accounts (
-                            username text,
-                            password text,
-                            discord_id text,
-                            guilds text,
-                            PRIMARY KEY (username, discord_id)
-                            )""")
-            
-            db.curs.execute("SELECT server_id FROM server_users WHERE member_id = ?", (acc_info[2],)) # grab guilds user is in
-            guilds = db.curs.fetchall()
-            guild_str = ""
-            for guild in guilds:
-                guild_str += str(guild)[2:-3] + " " # weird format? tuples messing up. idk
-                
-            print(guild_str)
-            db.curs.execute("INSERT INTO user_accounts VALUES (?, ?, ?, ?)", (acc_info[0], acc_info[1], acc_info[2], guild_str))
-            return "success"
-    
+ 

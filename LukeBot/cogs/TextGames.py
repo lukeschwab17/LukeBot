@@ -23,10 +23,7 @@ class TextGames(commands.Cog):
     @commands.hybrid_command(name="typerace", description="Create a type racer lobby.")
     async def type_race(self, ctx):
         """Create a TypeRacer lobby."""
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id))
         
         await ctx.send(f"Please type 'race' to join/leave race. {ctx.author.mention} may begin the race by typing 'start' or cancel by typing 'cancel'")
         racing_users = {ctx.author} # set of users currently ready to race
@@ -114,10 +111,7 @@ class TextGames(commands.Cog):
     @commands.hybrid_command(name="wordle",description="Create a wordle game.")
     async def wordle(self, ctx): 
         """Create a wordle game."""
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id))
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id))
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id))
         
         def create_grid(guesses: list[str]=None, word: str='') -> discord.File: # creates and fills grid based on list of user guesses
             if guesses is None:
@@ -230,10 +224,7 @@ class TextGames(commands.Cog):
     @commands.hybrid_command(name="picdle", description="Guess the animal!")
     async def picdle(self, ctx, difficulty: str = None):
         """Guess cat or dog. Easy, Med, or Hard"""
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), difficulty)
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), difficulty)
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id), difficulty)
             
         if not difficulty:
             await ctx.send("Please try again and enter a difficulty. see *help for options.")
@@ -245,7 +236,7 @@ class TextGames(commands.Cog):
                 image = Image.open(image_data)
                 if blur != None:
                     image = image.filter(ImageFilter.BoxBlur(blur))
-                image_data = BytesIO()  # Create a new BytesIO object for saving the image
+                image_data.seek(0)
                 image.save(image_data, format='PNG')
                 image_data.seek(0)
                 file_image = discord.File(image_data, filename="image.png")
@@ -324,10 +315,7 @@ class TextGames(commands.Cog):
             await ctx.send("Correct usage: *ttt @mention")
             return
         
-        if ctx.guild:
-            Database.cmd_to_db(ctx.command.name, str(ctx.guild.id), str(ctx.author.id), str(user.id))
-        else:
-            Database.cmd_to_db(ctx.command.name, "DM", str(ctx.author.id), str(user.id))
+        Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id), str(user.id))
         
         # function creates and fills grid based on list of user placement
         def add_turn(first_start: bool, place: int=None, letter: chr=None) -> discord.File: 
