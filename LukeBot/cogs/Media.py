@@ -14,7 +14,7 @@ import shutil
 import os
 from PIL import Image
 from pkg_resources import parse_version
-from all_keys import TENOR_API_KEY
+from file_paths import TENOR_API_KEY, PROJECT_DIR
 
 if parse_version(Image.__version__)>=parse_version('10.0.0'): # for pillow resizing to work
     Image.ANTIALIAS=Image.LANCZOS
@@ -175,7 +175,7 @@ class Media(commands.Cog):
             all_recording_filepaths = []
             # need to create temporary video file. because temporary files are written num.mp4, 
             # if multiple instances run, files will get overritten and deleted unless we create new directory for each function call
-            temp_folder = f'assets/recording_sessions/{self.temp_videos_index}'
+            temp_folder = f"{PROJECT_DIR}/assets/recording_sessions/{self.temp_videos_index}"
             if not os.path.exists(temp_folder):
                 os.makedirs(temp_folder)
             while True:

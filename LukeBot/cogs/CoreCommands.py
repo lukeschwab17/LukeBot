@@ -11,6 +11,7 @@ from databases.databases import Database
 import httpx
 from io import BytesIO
 from PIL import Image
+from file_paths import PROJECT_DIR
 
 random.seed(time.time())
 
@@ -68,7 +69,7 @@ class CoreCommands(commands.Cog):
         """Roll the dice."""    
         Database.cmd_to_db(ctx.command.name, "DM" if not ctx.guild else str(ctx.guild.id), str(ctx.author.id))
         
-        await ctx.send(file=discord.File(f'assets/dice/DIE_0{random.randint(1,6)}.png'))
+        await ctx.send(file=discord.File(f"{PROJECT_DIR}/assets/dice/DIE_0{random.randint(1,6)}.png"))
 
     @commands.hybrid_command(name="avatar", description="Change the bot avatar")
     async def avatar(self, ctx, img: str = None):
@@ -87,7 +88,7 @@ class CoreCommands(commands.Cog):
         def url_to_imgfile(response: httpx.Response, num: int):
             """Grabs image data and writes it to file with unique name"""
             image_data = response.content
-            file = open(f"assets/avatars/{num}.png", 'wb')
+            file = open(f"{PROJECT_DIR}/assets/avatars/{num}.png", 'wb')
             file.write(image_data)
             file.close()
         
@@ -110,7 +111,7 @@ class CoreCommands(commands.Cog):
         elif img.isdigit(): 
             if int(img) in Database.get_ids("avatars"):
                use_stored_avatar = True
-               avatar_filepath = f'assets/avatars/{img}.png'
+               avatar_filepath = f"{PROJECT_DIR}/avatars/{img}.png"
             else:
                 await ctx.send("If attempting to use existing avatar, please try again and enter correct number of the avatar you are attempting to use.")
                 return
@@ -151,7 +152,7 @@ class CoreCommands(commands.Cog):
         # if user is using stored avatar, then avatar filepath is already valid.
         # should probably just get avatar ID as string and append '.png' instead, since filename derives from id
         if not use_stored_avatar:
-            avatar_filepath = Database.get_avatar_file_path(set_avatar)[0]
+            avatar_filepath = PROJECT_DIR + "/" + Database.get_avatar_file_path(set_avatar)[0]
             
         with open(avatar_filepath, 'rb') as image:
             await self.bot.user.edit(avatar=image.read())
