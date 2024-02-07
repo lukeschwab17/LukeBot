@@ -8,10 +8,7 @@ import os
 import httpx
 import json
 from bs4 import BeautifulSoup
-from PIL import Image
-from PIL import ImageFont
-from PIL import ImageDraw
-from PIL import ImageFilter
+from PIL import Image, ImageFont, ImageDraw, ImageFilter
 from io import BytesIO
 from databases.databases import Database
 from file_paths import PROJECT_DIR

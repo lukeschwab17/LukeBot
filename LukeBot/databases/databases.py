@@ -3,7 +3,7 @@ from datetime import datetime
 import os
 from typing import Self
 from cryptography.fernet import Fernet
-from file_paths import DATABASE, DATABASE_KEY
+from file_paths import DATABASE, DATABASE_KEY, VIDEO_SAVE_LOCATION
 
 
 class Database:
@@ -201,7 +201,6 @@ class Database:
             user_id_string += user + " "
 
         with cls() as db:
-            # db.curs.execute("DROP TABLE recording_session_compilations")
             db.curs.execute(
                 """CREATE TABLE IF NOT EXISTS recording_session_compilations ( 
                                 user_ids text,
@@ -217,7 +216,7 @@ class Database:
                 (user_id_string, numclips, clip_name, guild_id),
             )
 
-            file_path = rf"C:\Users\schwa\Desktop\video_website\video_website\video_website\static\videos\{db.curs.lastrowid}.mp4"  # Generate file path using the ID and file extension
+            file_path = f"{VIDEO_SAVE_LOCATION}/{db.curs.lastrowid}.mp4"  # Generate file path using the ID and file extension
             db.curs.execute(
                 "UPDATE recording_session_compilations SET file_path = ? WHERE rowid = ?",
                 (file_path, db.curs.lastrowid),

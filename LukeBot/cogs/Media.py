@@ -1,6 +1,5 @@
 import asyncio
 import random
-from re import A
 import time
 import json
 import httpx
@@ -14,7 +13,7 @@ import shutil
 import os
 from PIL import Image
 from pkg_resources import parse_version
-from file_paths import TENOR_API_KEY, PROJECT_DIR
+from file_paths import TENOR_API_KEY, PROJECT_DIR, VIDEO_SAVE_LOCATION
 
 if parse_version(Image.__version__)>=parse_version('10.0.0'): # for pillow resizing to work
     Image.ANTIALIAS=Image.LANCZOS
@@ -258,9 +257,9 @@ class Media(commands.Cog):
             try:
                 file_name = Database.get_largest_rowid("recording_session_compilations") + 1
                 # if doesn't throw exception
-                concatenate(all_recording_filepaths, rf"C:\Users\schwa\Desktop\video_website\video_website\video_website\static\videos\{file_name}.mp4", "reduce")
+                concatenate(all_recording_filepaths, f"{VIDEO_SAVE_LOCATION}/{file_name}.mp4", "reduce")
             except: # if does, it's the first of the table.
-                concatenate(all_recording_filepaths, rf"C:\Users\schwa\Desktop\video_website\video_website\video_website\static\videos\{1}.mp4", "reduce")
+                concatenate(all_recording_filepaths, f"{VIDEO_SAVE_LOCATION}/{1}.mp4", "reduce")
                 
             Database.submit_video(user_ids, len(all_recordings), str(user_message.content), str(ctx.guild.id))
             await ctx.send("Recordings compiled and saved.")

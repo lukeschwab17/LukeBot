@@ -2,6 +2,8 @@
 
 PROJECT_DIR = "Lukebot/LukeBot"
 
+VIDEO_SAVE_LOCATION = "video_website/video_website/static/videos"
+
 with open(f"{PROJECT_DIR}/keys/filekey.key", "r") as keyfile:
     DATABASE_KEY = keyfile.read()
 
